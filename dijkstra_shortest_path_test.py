@@ -1,4 +1,5 @@
-import heapq
+from heap import Heap
+
 
 class Node:
     def __init__(self, name):
@@ -6,25 +7,35 @@ class Node:
         self.adj_list = []
 
 
-class NodeInTraversal(Node):
-    def __init__(self):
-        self.visited = False
-        self.predecessor = None
-        self.min_distance = float('inf')
-
-    def __lt__(self, other):
-        return self.min_distance < other.min_distance
-
-
 def dijkstra_shortest_path(start_node):
     visited = {}
     predecessors = {}
-    distances = {}
-    heap = []
+    distances = {
+        start_node.name: 0
+    }
 
-    heapq.heappush(heap, start_node)
+    def get_distance(node_name):
+        if node_name in distances:
+            return distances.get(node_name)
+        return float('inf')
 
-    return {}, {}
+    heap = Heap(lambda node2, node1: get_distance(node1.name) - get_distance(node2.name))
+
+    heap.insert(start_node)
+
+    while not heap.is_empty():
+        actual_vertex = heap.poll()
+        if actual_vertex.name in visited:
+            continue
+        for (neighbour_node, cost_to_neighbour) in actual_vertex.adj_list:
+            new_distance = get_distance(actual_vertex.name) + cost_to_neighbour
+            if new_distance < get_distance(neighbour_node.name):
+                distances[neighbour_node.name] = new_distance
+                predecessors[neighbour_node.name] = actual_vertex.name
+                heap.insert(neighbour_node)
+        visited[actual_vertex.name] = True
+
+    return distances, predecessors
 
 
 def test_shortest_path():
@@ -58,16 +69,17 @@ def test_shortest_path():
     }
 
     expected_paths = {
-        'b': ['a', 'b'],
-        'c': ['a', 'e', 'f', 'c'],
-        'd': ['a', 'e', 'f', 'c', 'd'],
-        'e': ['a', 'e'],
-        'f': ['a', 'e', 'f'],
-        'g': ['a', 'e', 'f', 'c', 'g'],
-        'h': ['a', 'h']
+        'b': 'a',
+        'c': 'f',
+        'd': 'c',
+        'e': 'a',
+        'f': 'e',
+        'g': 'c',
+        'h': 'a'
     }
 
     costs, paths = dijkstra_shortest_path(a)
 
     assert costs == expected_costs
     assert paths == expected_paths
+
