@@ -83,3 +83,28 @@ def test_shortest_path():
     assert costs == expected_costs
     assert paths == expected_paths
 
+
+def test_negative_weights():
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    a.adj_list = [(b, 5), (c, 2)]
+    b.adj_list = [(c, -10)]
+    c.adj_list = []
+
+    expected_costs = {
+        'a': 0,
+        'b': 5,
+        'c': -5
+    }
+
+    expected_paths = {
+        'b': 'a',
+        'c': 'b'
+    }
+
+    costs, paths = dijkstra_shortest_path(a)
+
+    assert costs == expected_costs
+    assert paths == expected_paths
