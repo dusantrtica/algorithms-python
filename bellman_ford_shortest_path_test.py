@@ -22,7 +22,6 @@ def bellman_ford_shortest_path(start_node, other_nodes_with_edges):
                 _edges.append((u, v, cost))
         return _vertices, _edges
 
-    visited = {}
     predecessors = {}
     distances = {
         start_node.name: 0
@@ -35,7 +34,7 @@ def bellman_ford_shortest_path(start_node, other_nodes_with_edges):
 
     vertices, edges = get_all_vertices_and_edges()
 
-    for vertex in vertices:
+    for _ in vertices:
         for (u, v, cost) in edges:
             distance_to_u = get_distance(u)
             if distance_to_u + cost < get_distance(v):
