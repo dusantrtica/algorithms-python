@@ -26,6 +26,7 @@ def bellman_ford_shortest_path(start_node, other_nodes_with_edges):
     distances = {
         start_node.name: 0
     }
+    has_cycle = False
 
     def get_distance(node_name):
         if node_name in distances:
@@ -34,14 +35,22 @@ def bellman_ford_shortest_path(start_node, other_nodes_with_edges):
 
     vertices, edges = get_all_vertices_and_edges()
 
-    for _ in vertices:
+    for _ in range(len(vertices) - 1):
         for (u, v, cost) in edges:
             distance_to_u = get_distance(u)
             if distance_to_u + cost < get_distance(v):
                 distances[v] = distance_to_u + cost
                 predecessors[v] = u
 
-    return distances, predecessors
+    # one more to detect negative cycle
+    for (u, v, cost) in edges:
+        distance_to_u = get_distance(u)
+        if distance_to_u + cost < get_distance(v):
+            has_cycle = True
+            distances[v] = distance_to_u + cost
+            predecessors[v] = u
+
+    return distances, predecessors, has_cycle
 
 
 def test_shortest_path():
@@ -84,10 +93,11 @@ def test_shortest_path():
         'h': 'a'
     }
 
-    costs, paths = bellman_ford_shortest_path(a, [b, c, d, e, f, g, h])
+    costs, paths, has_cycle = bellman_ford_shortest_path(a, [b, c, d, e, f, g, h])
 
     assert costs == expected_costs
     assert paths == expected_paths
+    assert has_cycle == False
 
 
 def test_negative_weights():
@@ -110,7 +120,51 @@ def test_negative_weights():
         'c': 'b'
     }
 
-    costs, paths = bellman_ford_shortest_path(a, [b, c])
+    costs, paths, has_cycle = bellman_ford_shortest_path(a, [b, c])
 
     assert costs == expected_costs
     assert paths == expected_paths
+    assert has_cycle == False
+
+
+def test_negative_weights():
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+    d = Node('d')
+
+    a.adj_list = [(b, 5), (c, 10)]
+    b.adj_list = [(d, 2)]
+    c.adj_list = [(b, -15)]
+
+    expected_costs = {
+        'a': 0,
+        'b': -5,
+        'c': 10,
+        'd': -3
+    }
+
+    expected_paths = {
+        'b': 'c',
+        'c': 'a',
+        'd': 'b'
+    }
+
+    costs, paths, has_cycle = bellman_ford_shortest_path(a, [b, c, d])
+
+    assert costs == expected_costs
+    assert paths == expected_paths
+    assert has_cycle == False
+
+
+def test_has_negative_cycle():
+    a = Node('a')
+    b = Node('b')
+    c = Node('c')
+
+    a.adj_list = [(b, 1)]
+    b.adj_list = [(c, -1)]
+    c.adj_list = [(a, -2)]
+
+    _, __, has_cycle = bellman_ford_shortest_path(a, [b, c])
+    assert has_cycle == True
