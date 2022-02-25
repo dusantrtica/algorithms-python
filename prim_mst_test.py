@@ -1,40 +1,71 @@
 from functools import reduce
 from heap import Heap
+
+
 class Graph(list):
     def __eq__(self, other):
-        if len(self) != len(other):
-            return False
+        def reverse(item):
+            (u, v, cost) = item
+            return (v, u, cost)
+
         for item in self:
-            if item not in other:
+            if item not in other and reverse(item) not in other:
                 return False
         return True
 
 
 def edges_by_vertex(graph):
-    def add_edge_to_vertex_map(edge, map):
+    def add_edge_to_vertex_map(edge, vertex_map):
         (u, v, cost) = edge
-        if u in map:
-            map[u].append((v, cost))
+        if u in vertex_map:
+            vertex_map[u].append(edge)
         else:
-            map[u] = [(v, cost)]
+            vertex_map[u] = [edge]
+
+        if v in vertex_map:
+            vertex_map[v].append((v, u, cost))
+        else:
+            vertex_map[v] = [(v, u, cost)]
 
     vertices = {}
-    reduce(lambda edge: add_edge_to_vertex_map(edge, vertices), graph)
+    for edge in graph:
+        add_edge_to_vertex_map(edge, vertices)
     return vertices
 
 
-def prim_mst(graph):
-    visited = set()
-    heap = Heap(lambda e1, e2: e1[2] - e2[2])
-    for u, edges_from_u in edges_by_vertex(graph).items():
-        if u not in visited:
-            visited.add(u)
-        for edge in edges_from_u:
-            pass
-
+def prim_jarnik_mst(graph):
+    vertex_map = edges_by_vertex(graph)
+    unvisited = set(vertex_map.keys())
+    heap = Heap(lambda e1, e2: e2[2] - e1[2])
     mst = []
-    return mst
+    total_cost = 0
+    start_vertex = list(unvisited)[0]
 
+    while unvisited:
+        # consider all edges of actual vertex
+        for (u, v, cost) in vertex_map[start_vertex]:
+            if v in unvisited:
+                heap.insert((u, v, cost))
+
+        (u, v, cost) = heap.poll()
+
+        if v in unvisited:
+            mst.append((u, v, cost))
+            total_cost += cost
+            start_vertex = v
+            unvisited.remove(v)
+
+    return Graph(mst)
+
+"""
+simpathy - razumevanje, imam razumevanja
+phrase - sintagma
+false friends: simpathy and simpatija - znace razlicite stvari
+cognate - many cognates: 
+don't want to water it down or to dilute from it
+dear implies initimacy and familiarity
+mistank
+"""
 
 def test_prim_mst():
     graph = Graph([
@@ -56,14 +87,13 @@ def test_prim_mst():
     expected_mst = Graph([
         ('a', 'b', 1),
         ('a', 'c', 2),
-        ('b', 'd', 4),
         ('c', 'f', 3),
         ('d', 'e', 2),
         ('e', 'f', 4),
         ('f', 'g', 2)
     ])
 
-    assert prim_mst(graph) == expected_mst
+    assert prim_jarnik_mst(graph) == expected_mst
 
 
 def test_prim_another_graph():
@@ -81,14 +111,14 @@ def test_prim_another_graph():
         ('f', 'g', 5)
     ])
 
-    mst = prim_mst(graph)
-    expected_mst = [
+    mst = prim_jarnik_mst(graph)
+    expected_mst = Graph([
         ('a', 'b', 2),
         ('b', 'd', 3),
         ('b', 'e', 3),
         ('c', 'd', 1),
         ('c', 'f', 2),
-        ('d', 'g', 5)
-    ]
+        ('f', 'g', 5)
+    ])
 
-    assert mst == expected_mst
+    assert expected_mst == mst
