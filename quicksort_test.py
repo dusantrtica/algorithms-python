@@ -15,11 +15,28 @@ def partition(nums, left, right):
     return i
 
 
-def quicksort(nums, left, right):
+def partition_hoare(nums, left, right):
+    pivot_index = (left + right) // 2
+    pivot = nums[pivot_index]
+    i = left
+    j = right
+    while True:
+        if i >= j:
+            return i
+        while nums[i] < pivot:
+            i += 1
+        while nums[j] > pivot:
+            j -= 1
+        swap(nums, i, j)
+
+    return i
+
+
+def quicksort(nums, left, right, partition_fn=partition):
     if left >= right:
         return
 
-    pivot_index = partition(nums, left, right)
+    pivot_index = partition_fn(nums, left, right)
     quicksort(nums, left, pivot_index - 1)
     quicksort(nums, pivot_index + 1, right)
 
@@ -34,4 +51,17 @@ def test_quicksort_case2():
     nums = [23, 6, -1, 0, 12, 8, 3, 1]
     sorted_nums = sorted(nums)
     quicksort(nums, 0, len(nums) - 1)
+    assert nums == sorted_nums
+
+
+def test_quicksort_hoare():
+    nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    quicksort(nums, 0, len(nums) - 1, partition_fn=partition_hoare)
+    assert nums == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+def test_quicksort_case2_hoare():
+    nums = [23, 6, -1, 0, 12, 8, 3, 1]
+    sorted_nums = sorted(nums)
+    quicksort(nums, 0, len(nums) - 1, partition_fn=partition_hoare)
     assert nums == sorted_nums
