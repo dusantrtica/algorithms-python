@@ -24,6 +24,18 @@ def selection_sort(nums):
     return nums
 
 
+def selection_sort_recursive(nums):
+    if not nums:
+        return
+    min_index = 0
+    for i in range(len(nums)):
+        if nums[i] < nums[min_index]:
+            min_index = i
+    nums[0], nums[min_index] = nums[min_index], nums[0]
+
+    selection_sort_recursive(nums[1:])
+
+
 # adaptive, online algorithm
 def insertion_sort(nums):
     for i in range(len(nums)):
@@ -44,3 +56,9 @@ def test_selection_sort():
 
 def test_insertion_sort():
     assert insertion_sort([5, 4, 3, 2, 1]) == [1, 2, 3, 4, 5]
+
+
+def test_insertion_sort_rec():
+    nums = [5, 4, 3, 2, 1]
+    selection_sort_recursive(nums)
+    assert nums == [1, 2, 3, 4, 5]
